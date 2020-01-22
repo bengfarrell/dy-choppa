@@ -8,7 +8,6 @@ const alphaAutoCrop = require('./jimp-plugin-alpha-autocrop.js');
 
 const watchfolder = os.homedir() + '/Desktop/to-process';
 const baseTemplateFolder = os.homedir() + '/Desktop/masks';
-//const templateFolder = './exampleimages/vincent_price_avatar';
 
 watch( watchfolder, { recursive: true }, (eventType, filename) => {
     if ((path.extname(filename) === '.png' || path.extname(filename) === '.jpg') && eventType === 'update') {
@@ -23,9 +22,10 @@ watch( watchfolder, { recursive: true }, (eventType, filename) => {
 function processImage(template, filenametoprocess) {
     const folderName = `${os.homedir()}/Desktop/out/${Date.now()}`;
     fs.mkdirSync(folderName);
+
     fs.readdir(baseTemplateFolder + path.sep + template, function (err, maskfilenames) {
         if (err) {
-            console.log(err);
+            onError(err);
             return;
         }
         maskfilenames.forEach(function (maskfilename) {
@@ -34,12 +34,11 @@ function processImage(template, filenametoprocess) {
 
                 if (maskfilename.indexOf('.png') !== -1) {
                     if (err) throw err;
-                    const result = Jimp.read(`${baseTemplateFolder}/${template}/${maskfilename}`, (err, mask) => {
-                        console.log(`${baseTemplateFolder}/${template}/${maskfilename}`)
+                    const result = Jimp.read(`${templateFolder}/${maskfilename}`, (err, mask) => {
                         paperdoll
-                            .mask(mask)
-                            .alphaAutoCrop()
-                            .write(`${folderName}/${maskfilename}`); // save
+                        .mask(mask)
+                        .alphaAutoCrop()
+                        .write(`${folderName}/${maskfilename}`); // save
                     });
                 } else if (maskfilename.indexOf('.json') !== -1) {
                     extra.copySync(`${baseTemplateFolder}/${template}/${maskfilename}`, `${folderName}/manifest.json` );
